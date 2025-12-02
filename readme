@@ -1,0 +1,236 @@
+This software was created for sound and plasma art installation "Zoryas" imagined by Claire Williams and brought to life with the code of  Baptiste de la Gorce in 2019. This installation is a production of Le Fresnoy - Studio National des Arts Contemporains.
+This software has been made with the help of : 
+- The royal observatory of Belgium thanks to Petra Vanlommel & Christophe Marqué.
+- The E- Callisto network setup by Christian Monstein http://e-callisto.org/ giving us access to 24 h sun monitoring the electromagnetic activity of the sun with 47 radiotelescopes around the world.
+
+And the precious advice of: 
+Jean Phillipe Uzan, cosmologue 
+Renée Prange & Philipe Zarka from l'OBSPM of Paris
+Sébastien Cabour, sound artist and technical advisor.
+
+This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+This software has been coded to sonify or translate live data into audible sound. Fits files mesured by radiotelescopes from the E- Callisto network are updated every 15 minutes on the E-Callisto server.This data is the suns electromagnetic activity mesured at different frequencys varying from 0 to 1600 mHz.
+The python software reads the data as a spectrogramme in time and frequency translating them into sound frequencys from 0 - 400 hz.
+
+
+This software has been made for an artistic purpose in order to see, hear and feel the otherwise inaudible activity of our star. The setup is on a RaspberryPi3 B+ and a mono track is transmitted to 5 transduceurs and basspumps. The spectator can experience the activity of the sun through a bone conduction setup. The other mono track is sent to a tesla coil which modulates 5 plasma glass sculptures. Each contain different noble gases that vary in intensity and effects according to the different frequencys. 
+Low frequencys have been privileged for this specific setup. More info: http://www.xxx-clairewilliams-xxx.com/projets/zoryas/
+
+The python software downloads the last hours of the E-Callisto data and selects the most intense activity to generate a stereo track in wav format.
+
+List of the radiotelescopes from the E Callisto network and their frequency in mHz:
+
+ALASKA COHOE (45-95 mHz)
+ALASKA HARP (40-0)
+ALSAKA (200-425)
+ALMATY (200-900)
+Austria-Krumbach (0-500)
+Austria-michelbach (150-400)
+Austria-OE3FLB  (700-600 mHz)
+Austria- Unigraz (80-40 mHz)
+Australia-ASSA (800-100 mHz)
+Australia-LMRO (900- 0)
+BIR_ ( 110-10)
+ESSEN (80-20)
+ETHIOPIA (900- 0)
+GLASGOW (80-60)
+GREENLAND (110-10)
+Germany-Hildesheim (900-50)
+HUMAIN (450-0)
+HURBANOVO (200-55)
+INDIA-UDAIPUR (900-50)
+INDONESIA (400-0)
+INPE (900-50)
+JAPAN-IBARAKI (850-100)
+KASI (500-0)
+KRIM (350-250)
+MEXART ( 220-50)
+MONGOLIA-GOBI (900-50)
+MONGOLIA-UB (900-50)
+MRO (850-50)  
+MRT1 (900-50)
+MRT2 (500-0)
+MRT3 (500-0)
+NEPAL (900-50)
+NORWAY-NY-AALESUND (1600-1000)
+NORWAY-RANDABERG (1600-1000)
+OOTY (500-0)
+PERALEJOS (900-50)
+PuertoRico-Arecibo (120-0)
+ROSWELL-NM (300-0)
+SOUTHAFRICA-SANSA (900-50)
+SSRT (500-0)
+SWISS-BLEN5M (900-300)
+SWISS-HB9SCT (900-50)
+SWISS-HEITERSWIL (80-0)
+SWISS-MUHEN (90-15)
+SWISS-ZURICH (1500-1400)
+TRIEST (425-225)
+URUGUAY (900-100)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install Raspberry Pi ----------------------------------
+
+1) Download last Raspbian ISO
+https://www.raspberrypi.org/downloads/raspbian/
+Raspbian Buster with desktop  -> Download ZIP
+2) Download and install Balena Etcher : 
+https://www.balena.io/etcher/
+3) Graver avec Balena Etcher
+inserer la carte ISO dans un lecteur de carte SD sur l'ordinateur 
+lancer Balena Etcher 
+select image : selectionner le fichier zip téléchargé precedement
+select target : selectionner la carte SD
+Flash! 
+4) Demarer et configurer raspberry Pi 
+Welcome to the Raspberry Pi : Next 
+Set Contry : 
+Contry: France 
+Language : French 
+Timezone: Paris 
+Next 
+Change password : Next
+Set UP Screen : [v] This screen shows a black border around the desktop 
+Select WiFi Network : xxxxx
+Enter Wifi Password : xxxxx	
+Update Sofware : Next (aurais du mettre skipe ? ) 
+Restart 
+
+
+Son  -----------------------------------------------------------
+si utilise Sortie jack : 	
+clic-droit sur l'icone haut-parleur pour choisir sortie Analog et pas HDMI ! 
+
+si utilise HifiBerry :
+source : https://www.hifiberry.com/docs/software/configuring-linux-3-18-x/
+
+1) editer config.txt
+$ sudo mousepad /boot/config.txt
+commenter la ligne : 
+#dtparam=audio=on  
+
+en fonction de la carte son utilisée ajouté ligne: 
+
+#DAC for Raspberry Pi 1/DAC+ Light/DAC Zero/MiniAmp/Beocreate/DAC+ DSP
+dtoverlay=hifiberry-dac
+
+#DAC+ Standard/Pro/Amp2
+dtoverlay=hifiberry-dacplus
+
+#Digi/Digi+ all models
+dtoverlay=hifiberry-digi
+
+#Amp+ (not Amp2!)
+dtoverlay=hifiberry-amp
+
+2) redemarer et verifier que la carte son est bien détectée 
+un petite led verte s'allume sur la carte son Hifiberry
+$ sudo aplay -l
+**** Liste des Périphériques Matériels PLAYBACK ****
+carte 0: sndrpihifiberry [snd_rpi_hifiberry_dacplus], périphérique 0: HiFiBerry DAC+ HiFi pcm512x-hifi-0 [HiFiBerry DAC+ HiFi pcm512x-hifi-0]
+  Sous-périphériques: 1/1
+  Sous-périphérique #0: subdevice #0
+
+3) créer le fichier  asound.conf (Sans ça ne marche pas !!!!) 
+ $ sudo  mousepad  /etc/asound.conf
+copier dedans : 
+pcm.!default {
+  type hw card 0
+}
+ctl.!default {
+  type hw card 0
+}
+4) tester lecteure d'un fichier audio 
+sudo mplayer /home/clairewilliams/temp_48000_0.wav 
+
+Montage automatique de la clef USB  -------------------------------------
+1. Get the UUID of the disk partition:
+sudo blkid
+2. Find the disk partition from the list and note the UUID. For example, 5C24-1453.
+3. Open the fstab file using a command line editor such as mousepad:
+sudo mousepad /etc/fstab
+4.Add the following line in the fstab file:
+UUID=XXXX-XXXX /mnt/mydisk FSTYPE defaults,auto,users,rw,nofail 0 0
+Replace   XXXX-XXXX with theu UUDI trouvé au dessus 
+Replace FSTYPE with the type of your file system, which you found in step 2 of 'Mounting a storage device' above.
+5.If the filesystem type is FAT or NTFS, add ,umask=000 immediately after nofail - this will allow all users full read/write access to every file on the storage device.
+Now that you have set an entry in fstab, you can start up your Raspberry Pi with or without the storage device attached. Before you unplug the device you must either shut down the Pi, or manually unmount it using the steps in 'Unmounting a storage device' below.
+
+Zorias ----------------------------------------------------------
+(dans un terminal) 
+$ sudo apt-get install -y  mplayer
+$ sudo apt-get install -y mercurial
+$ sudo python3.7 -m pip install astropy
+$ sudo python3.7 -m pip install parse
+$ cd /home/
+$ sudo hg clone https://wiii:fourmis35@bitbucket.org/guilbut/clairewilliams
+$ sudo python3.7 -m pip install numpy : existe déjà 
+$ sudo python3.7 -m pip install wavefile existe déjà 
+$ sudo apt-get install emacs ?  pas besoin
+
+
+Demarage manuel --------------------------------------------------------
+(dans un terminal) 
+$ cd /home/clairewilliams
+$ sudo hg pull https://wiii:fourmis35@bitbucket.org/guilbut/clairewilliams
+$ sudo hg update default -C
+$ sudo python3.7 /home/clairewilliams/fitDownloader.py & sudo python3.7 /home/clairewilliams/fitPlayer.py
+
+Demarage automatique --------------------------------------------
+(dans un terminal) 
+$ sudo mousepad /etc/systemd/system/fitDownloader.service  
+copier dedans et sauver : 
+[Unit]
+Description=Autostart fitDownloader
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/sudo /usr/bin/python3 ./fitDownloader.py
+WorkingDirectory=/home/clairewilliams/
+StandardOutput=inherit
+StandardError=file:/home/clairewilliams/fitDownloader_error
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+
+$ sudo mousepad /etc/systemd/system/fitPlayer.service
+copier dedans et sauver : 
+[Unit]
+Description=Autostart fitPlayer
+After=fitDownloader.service
+
+[Service]
+ExecStart=/usr/bin/sudo /usr/bin/python3 ./fitPlayer.py
+WorkingDirectory=/home/clairewilliams/
+StandardOutput=inherit
+StandardError=file:/home/clairewilliams/fitPlayer_error
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+
+$ sudo systemctl enable fitDownloader
+$ sudo systemctl enable fitPlayer
+
+
+Debugage -------------------------------------------------------
+pour voir les sorties  : 
+$ sudo juournalctl -f -u fitPlayer.py
+$ sudo juournalctl -f -u fitDownloader.py
+
+pour voir les erreures : 
+ouvrir les fichiers : 
+/home/clairewilliams/fitPlayer_error
+/home/clairewilliams/fitDownloader_error
+
+arreter les scripts , puis les lancer à la main 
+$ sudo systemctl stop fitPlayer & sudo systemctl stop fitDownloader
+$ sudo python3.7 /home/clairewilliams/fitDownloader.py
+$ sudo python3.7 /home/clairewilliams/fitPlayer .py
+
